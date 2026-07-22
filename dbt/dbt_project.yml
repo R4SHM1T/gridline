@@ -1,0 +1,11 @@
+name: 'gridline'
+version: '1.0.0'
+config-version: 2
+profile: 'gridline'
+model-paths: ["models"]
+models:
+  gridline:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
