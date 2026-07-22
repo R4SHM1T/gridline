@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: Raw SmartThings telemetry landed by the ingestion jobs.
+    tables:
+      - name: device_events
+        description: One row per device attribute reading polled from the SmartThings API.
+        columns:
+          - name: event_id
+            tests: [not_null, unique]
+          - name: device_id
+            tests: [not_null]
+      - name: devices
+        description: Device manifest synced from SmartThings /devices.
+        columns:
+          - name: device_id
+            tests: [not_null, unique]
