@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/Airflow-orchestrated-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
   <img src="https://img.shields.io/badge/Samsung-SmartThings_API-1428A0?logo=samsung&logoColor=white" alt="Samsung SmartThings"/>
   <img src="https://img.shields.io/badge/status-v0.2_in_active_development-yellow" alt="Status"/>
+  <a href="https://r4shm1t.github.io/gridline/demo/"><img src="https://img.shields.io/badge/%E2%96%B6_live_demo-no_install,_runs_in_browser-00d4ff" alt="Live demo"/></a>
 </p>
 
 <p align="center">
@@ -43,6 +44,8 @@ flowchart LR
      1. demo.gif       — terminal: `make demo` boot + Airflow DAG going green (record with ScreenToGif/Kap, keep < 10 MB)
      2. dashboard.png  — Metabase energy + room-activity boards
      3. agent.png      — agent transcript: question in, SmartThings rule out -->
+
+**[▶ Open the live control room](https://r4shm1t.github.io/gridline/demo/)** — the telemetry simulator running entirely in your browser: floor plan with live devices, streaming events, power charts, and the agent closing the loop when you inject an anomaly. Nothing to install.
 
 | Pipeline run | Dashboards | Agent in action |
 |---|---|---|
