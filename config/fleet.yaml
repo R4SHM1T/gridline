@@ -1,0 +1,8 @@
+# SmartThings virtual devices manifest
+
+# This file will define the virtual fleet in Phase 1
+fleet:
+  - id: "motion_1"
+    type: "motionSensor"
+    room: "Living Room"
+  # To be expanded with contact, temperature/humidity, plugs, bulbs, presence...

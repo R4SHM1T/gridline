@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gridline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gridline}
+      POSTGRES_DB: ${POSTGRES_DB:-gridline}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${POSTGRES_DB:-gridline}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER:-gridline}
+      MB_DB_PASS: ${POSTGRES_PASSWORD:-gridline}
+      MB_DB_HOST: postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
