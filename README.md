@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="GRIDLINE — a Samsung smart home, piped into a warehouse" width="100%"/>
+  <img src="docs/assets/banner.svg" alt="Gridline. A Samsung smart home, piped into a warehouse." width="100%"/>
 </p>
 
 <p align="center">
@@ -7,81 +7,75 @@
   <img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python"/>
   <img src="https://img.shields.io/badge/dbt-core-FF694B?logo=dbt&logoColor=white" alt="dbt"/>
   <img src="https://img.shields.io/badge/Airflow-orchestrated-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow"/>
-  <img src="https://img.shields.io/badge/Samsung-SmartThings_API-1428A0?logo=samsung&logoColor=white" alt="Samsung SmartThings"/>
-  <img src="https://img.shields.io/badge/status-v0.2_in_active_development-yellow" alt="Status"/>
-  <a href="https://r4shm1t.github.io/gridline/demo/"><img src="https://img.shields.io/badge/%E2%96%B6_live_demo-no_install,_runs_in_browser-00d4ff" alt="Live demo"/></a>
+  <img src="https://img.shields.io/badge/Samsung-SmartThings_developer_platform-1428A0?logo=samsung&logoColor=white" alt="Samsung SmartThings"/>
+  <img src="https://img.shields.io/badge/status-v0.2,_still_building-yellow" alt="Status"/>
+  <a href="https://r4shm1t.github.io/gridline/demo/"><img src="https://img.shields.io/badge/%E2%96%B6_live_demo-runs_in_your_browser-00d4ff" alt="Live demo"/></a>
 </p>
 
-<p align="center">
-  <b>Warehouse-grade analytics for a Samsung smart home.</b><br/>
-  SmartThings telemetry → Airflow-orchestrated ingestion → dbt-modeled warehouse → dashboards →<br/>
-  an AI agent that turns insights back into SmartThings automations.
-</p>
+Gridline turns a smart home into a data warehouse, then lets the warehouse steer the home. It's built end to end on Samsung's SmartThings developer platform: virtual devices, the devices REST API, and the Rules engine.
 
----
+## ▶ Try it first
 
-## The closed loop
+**[Open the live demo](https://r4shm1t.github.io/gridline/demo/).** A virtual Samsung smart home running in your browser. Watch it wake up, cook dinner, go to sleep. Press "break something" and watch the house notice. Nothing to install.
 
-Most portfolio pipelines stop at a dashboard. This one closes the loop: data flows **out** of the home into a warehouse, and decisions flow **back** into the home through the SmartThings Rules API.
+## The problem
+
+Every pipeline I'd built before this ran on static CSV files, and they taught me almost nothing. A file downloaded once never arrives late, never sends garbage, never rate-limits you at 2am. I wanted a data source that behaves like production, without buying a house full of hardware to get one. Samsung's SmartThings platform turned out to be the answer: it lets you create virtual devices that speak the same API as real ones, for free. So the telemetry is simulated, but everything it touches is real: real REST payloads, real token scopes, real rate limits, and a real rules engine to act on what the data says.
+
+## How it works
 
 ```mermaid
 flowchart LR
-    SIM["🎭 Telemetry simulator<br/><i>realistic daily rhythms + injected anomalies</i>"] --> ST["🔵 Samsung SmartThings<br/><i>virtual devices, real API</i>"]
-    ST -->|REST poll| EL["🛠 EL jobs<br/><i>Python</i>"]
-    EL --> RAW[("🗄 Postgres<br/><i>raw schema</i>")]
-    RAW --> DBT["⚙️ dbt<br/><i>staging → marts + tests</i>"]
-    DBT --> MARTS[("📐 marts")]
-    MARTS --> BI["📊 Metabase"]
-    MARTS --> AGENT["🤖 AI agent"]
-    AGENT -->|Rules API| ST
-    AF["🌀 Airflow"] -.orchestrates.-> EL
-    AF -.orchestrates.-> DBT
+    SIM["Simulator<br/><i>gives the house a daily rhythm</i>"] --> ST["Samsung SmartThings<br/><i>virtual devices, real API</i>"]
+    ST -->|polled over REST| EL["Ingestion<br/><i>Python</i>"]
+    EL --> RAW[("Postgres<br/><i>raw events</i>")]
+    RAW --> DBT["dbt<br/><i>cleans and models</i>"]
+    DBT --> MARTS[("Marts<br/><i>energy, activity, anomalies</i>")]
+    MARTS --> BI["Metabase<br/><i>dashboards</i>"]
+    MARTS --> AUTO["Autopilot<br/><i>threshold rules</i>"]
+    AUTO -->|Rules API| ST
+    AF["Airflow"] -.runs the schedule.-> EL
+    AF -.-> DBT
 ```
 
-## See it
+Data flows out of the house into a warehouse. Decisions flow back into the house through the same Samsung API the data came from. Most pipelines stop at a dashboard; the point of this one is the round trip.
 
-<!-- TODO(v0.6): replace placeholders with real captures.
-     1. demo.gif       — terminal: `make demo` boot + Airflow DAG going green (record with ScreenToGif/Kap, keep < 10 MB)
-     2. dashboard.png  — Metabase energy + room-activity boards
-     3. agent.png      — agent transcript: question in, SmartThings rule out -->
+## What I learned building it
 
-**[▶ Open the live control room](https://r4shm1t.github.io/gridline/demo/)** — the telemetry simulator running entirely in your browser: floor plan with live devices, streaming events, power charts, and the agent closing the loop when you inject an anomaly. Nothing to install.
+- How SmartThings tokens and scopes actually work, and what its rate limits do to a naive polling loop.
+- Standing up Airflow locally and why idempotent tasks matter the first time a run dies halfway.
+- dbt's testing discipline: sources, staging models, and letting `dbt build` catch what I break.
+- That simulating realistic telemetry (morning rush, evening peak, appliances with signatures) is harder than ingesting it.
 
-| Pipeline run | Dashboards | Agent in action |
-|---|---|---|
-| _demo GIF coming in v0.6_ | _Metabase boards coming in v0.6_ | _agent transcript coming in v0.7_ |
+## Status
 
-## Why this exists
-
-Every portfolio pipeline I'd seen — including my own early ones — ran on dead CSVs. Static datasets can't teach you what actually breaks pipelines in production: late-arriving events, flaky sensors, rate limits, schema drift. I wanted a source that *behaves* like production. Smart-home telemetry fit perfectly, but I wasn't going to buy a fleet of devices to learn on — and that's when I found that Samsung's SmartThings is the one major smart-home platform with a fully open developer surface: virtual devices that behave like real ones, real API payloads, real rate limits, a real rules engine. So the warehouse got built on Samsung's rails — and once telemetry was flowing, the obvious next step was closing the loop: let an agent act back on the home through the same API the data came from.
-
-## Quickstart
-
-```bash
-git clone https://github.com/R4SHM1T/gridline.git && cd gridline
-cp .env.example .env    # add your SmartThings personal access token
-make demo               # boots postgres + metabase, seeds fleet, runs the pipeline
-make test               # simulator unit tests
-```
-
-## Status — honest scope
-
-This project is **v0.2 and under active development**; the roadmap lives in [PRD.md](PRD.md).
+Building this in public, one tagged phase at a time. Roadmap lives in [PRD.md](PRD.md).
 
 | Piece | State |
 |---|---|
-| Repo skeleton, CI, docker-compose | ✅ |
-| SmartThings polling + raw landing | ✅ |
-| Telemetry simulator (rhythms + anomalies, unit-tested) | ✅ |
-| Virtual fleet auto-provisioning | 🚧 |
-| dbt marts (energy, room activity, anomalies, device health) | 🚧 |
-| Airflow production DAG (retries, backfills) | 🚧 |
-| Metabase dashboards | 🖜 |
-| Guard-railed AI agent → Rules API | 🖜 |
+| Repo skeleton, CI, docker-compose | working |
+| SmartThings polling into raw Postgres tables | working |
+| Telemetry simulator with daily rhythms and injectable faults | working, unit-tested |
+| Virtual fleet auto-provisioning | building now |
+| dbt marts: energy, room activity, anomalies, device health | building now |
+| Airflow production DAG with retries and backfills | building now |
+| Metabase dashboards | next up |
+| Autopilot: anomaly flags into SmartThings rules | next up |
 
-**What's simulated vs real:** no physical hardware — devices are SmartThings *virtual devices* driven by a realism-tuned simulator, so the pipeline consumes real Samsung API payloads and anyone can reproduce it for free. No invented metrics anywhere in this repo: if a number appears, a command reproduces it.
+What's simulated and what's real: no physical hardware anywhere. Devices are SmartThings virtual devices fed by the simulator, so anyone can reproduce the whole thing for free. If a number appears in this repo, a command reproduces it.
 
-## What I'd do next
+## Run it yourself
 
-- Swap local Postgres for Snowflake/BigQuery; incremental dbt models.
-- Batch → streaming (Kafka) for real-time anomaly detection.
+```bash
+git clone https://github.com/R4SHM1T/gridline.git && cd gridline
+cp .env.example .env    # token from https://account.smartthings.com/tokens
+make demo               # postgres + metabase up, fleet seeded, pipeline run
+make test               # simulator unit tests
+```
+
+You'll need a free Samsung developer account to mint the token: [developer.smartthings.com](https://developer.smartthings.com).
+
+## What's next
+
+- Swap local Postgres for a cloud warehouse and make the dbt models incremental.
+- Move polling to event subscriptions once the fleet grows past what polite polling can cover.

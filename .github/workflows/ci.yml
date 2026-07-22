@@ -17,6 +17,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      # Steps to be expanded in future phases (lint, dbt test against DuckDB, simulator/agent tests)
-      - name: Dummy test
-        run: echo "Tests will be added here"
+      - name: Simulator unit tests
+        run: python -m unittest discover -s simulator/tests -t .
+
+      # coming as the phases land: lint, dbt build against DuckDB, autopilot tests

@@ -3,121 +3,167 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GRIDLINE — live control room</title>
+<title>Gridline. A virtual Samsung smart home, live in your browser</title>
+<meta name="description" content="A virtual Samsung smart home streaming live data in your browser. Nothing to install.">
 <style>
-:root{--bg:#0a0e14;--panel:#0d1520;--line:#1c2733;--ink:#e6edf3;--dim:#8b949e;--faint:#586674;--cyan:#00d4ff;--violet:#7c3aed;--green:#3fb950;--red:#f85149;--amber:#d29922}
+:root{--bg:#070b11;--panel:rgba(13,21,32,.78);--line:#1c2733;--ink:#e6edf3;--dim:#93a4b5;--faint:#5b6b7b;--cyan:#00d4ff;--violet:#7c3aed;--green:#3fb950;--red:#f85149;--amber:#d29922}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font:14px/1.5 'Segoe UI',system-ui,sans-serif;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;min-height:100vh}
+html{font-size:clamp(14px,1.05vw,16px)}
+body{background:var(--bg);color:var(--ink);font:1rem/1.55 'Segoe UI',system-ui,-apple-system,sans-serif;background-image:linear-gradient(#101823 1px,transparent 1px),linear-gradient(90deg,#101823 1px,transparent 1px);background-size:44px 44px;min-height:100vh}
 .mono{font-family:Consolas,Menlo,monospace}
-header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(10,14,20,.92);position:sticky;top:0;z-index:5;flex-wrap:wrap}
-header h1{font-size:18px;letter-spacing:6px;font-weight:800}
-header h1 span{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 12px;font-size:12px;color:var(--dim)}
-#clock{color:var(--cyan);min-width:150px}
-button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 14px;font:600 12px 'Segoe UI',sans-serif}
+/* hero overlay */
+#hero{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,rgba(13,24,40,.97),rgba(7,11,17,.99));backdrop-filter:blur(6px);transition:opacity .6s,visibility .6s}
+#hero.gone{opacity:0;visibility:hidden}
+#hero .card{max-width:560px;padding:44px 46px;text-align:center}
+#hero h1{font-size:clamp(30px,4.5vw,44px);letter-spacing:12px;font-weight:800}
+#hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+#hero .tag{margin-top:8px;color:var(--dim);font-size:1.1rem}
+#hero p{margin:20px 0 26px;color:var(--dim);text-align:left}
+#hero .st{font-size:.8rem;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-top:18px}
+#go{background:linear-gradient(90deg,var(--cyan),var(--violet));border:none;color:#04121c;font-weight:800;font-size:1.05rem;padding:12px 34px;border-radius:999px;cursor:pointer}
+#go:hover{filter:brightness(1.15)}
+/* header */
+header{display:flex;align-items:center;gap:10px;padding:12px 22px;border-bottom:1px solid var(--line);background:rgba(7,11,17,.9);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;flex-wrap:wrap}
+header .brand{font-size:1.05rem;letter-spacing:5px;font-weight:800;margin-right:6px}
+header .brand em{font-style:normal;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 12px;font-size:.75rem;color:var(--dim);white-space:nowrap}
+#clock{color:var(--cyan);min-width:118px;text-align:center}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 14px;font:600 .78rem 'Segoe UI',sans-serif}
 button:hover{border-color:var(--cyan)}
-#inject{border-color:var(--amber);color:var(--amber)}
-#inject:hover{background:rgba(210,153,34,.12)}
-main{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;padding:14px 22px;max-width:1400px;margin:0 auto}
-@media(max-width:900px){main{grid-template-columns:1fr}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;overflow:hidden}
-.panel h2{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+#break{border-color:var(--amber);color:var(--amber);font-weight:700}
+#break:hover{background:rgba(210,153,34,.12)}
+#sky{height:6px;background:linear-gradient(90deg,#070b16,#0e1430)}
+/* layout */
+main{max-width:1380px;margin:0 auto;padding:16px 22px}
+#kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.kpi b{display:block;font-size:1.6rem;font-weight:800}
+.kpi span{font-size:.68rem;color:var(--faint);letter-spacing:1.5px;text-transform:uppercase}
+#cols{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.25);margin-bottom:14px;animation:up .6s ease both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.panel h2{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--faint)}
+.panel h2 .sub{letter-spacing:0;text-transform:none;color:#3d4c5c;float:right}
+.cap{display:none;color:var(--dim);font-size:.82rem;margin:6px 0 2px;border-left:2px solid var(--violet);padding-left:10px}
+body.explain .cap{display:block}
+.panel>h2{margin-bottom:8px}
 #plan svg{width:100%;height:auto;display:block}
-.room{fill:#0f1a27;stroke:#22303f;stroke-width:1.5}
-.room.active{fill:#12253a}
-.rlabel{fill:#586674;font:600 11px Consolas,Menlo,monospace;letter-spacing:1px}
-.dev{fill:#2b3a4a}
-.dev.on{fill:var(--cyan)}
-.dev.anom{fill:var(--red)}
+.room{fill:#0e1826;stroke:#2a3b4d;stroke-width:2;transition:fill .8s}
+.room.active{fill:#182c42}
+.furn{fill:#132133;stroke:none}
+.rlabel{fill:#5b6b7b;font:600 11px Consolas,Menlo,monospace;letter-spacing:1px}
+.dev circle{fill:#16222f;stroke:#2b3a4a;transition:fill .3s}
+.dev text{font:700 9px Consolas,monospace;fill:#7d90a3;text-anchor:middle;pointer-events:none}
+.dev.on circle{fill:var(--cyan);stroke:var(--cyan)}
+.dev.on text{fill:#04121c}
+.dev.bad circle{fill:var(--red);stroke:var(--red)}
+.dev.bad text{fill:#1c0505}
 .pulse{stroke:var(--cyan);fill:none;opacity:0;stroke-width:2}
-.pulse.go{animation:pp 1.2s ease-out}
-@keyframes pp{0%{opacity:.9;r:6}100%{opacity:0;r:26}}
-#kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
-.kpi b{display:block;font-size:22px;font-weight:800}
-.kpi span{font-size:11px;color:var(--faint);letter-spacing:1px;text-transform:uppercase}
-canvas{width:100%;height:120px;display:block}
-#feed,#agentlog{list-style:none;max-height:210px;overflow-y:auto;font-size:12px}
-#feed li,#agentlog li{padding:3px 0;border-bottom:1px dashed #16202b;color:var(--dim)}
-#feed li b{color:var(--ink);font-weight:600}
-#feed li.anom{color:var(--red)}
-#agentlog li{color:#9db4c8}
-#agentlog li.act{color:var(--green)}
-#banner{display:none;margin:0 22px;margin-top:12px;border:1px solid var(--red);background:rgba(248,81,73,.08);color:var(--red);border-radius:10px;padding:10px 16px;font-weight:600}
-footer{padding:18px 22px 30px;color:var(--faint);font-size:12px;max-width:1400px;margin:0 auto}
+.pulse.go{animation:pp 1.1s ease-out}
+.pulse.bad{stroke:var(--red)}
+@keyframes pp{0%{opacity:.9}100%{opacity:0;r:28}}
+#feed,#autolog{list-style:none;max-height:230px;overflow-y:auto;font-size:.82rem}
+#feed li,#autolog li{padding:4px 0;border-bottom:1px dashed #141e29;color:var(--dim)}
+#feed li time,#autolog li time{color:#4a5a6a;font-family:Consolas,monospace;font-size:.72rem;margin-right:8px}
+#feed li.bad{color:var(--red)}
+#autolog li.rule{color:var(--green)}
+#chartwrap{position:relative}
+canvas{width:100%;height:130px;display:block}
+#tip{position:absolute;display:none;background:#0d1520;border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:.72rem;color:var(--cyan);pointer-events:none;white-space:nowrap}
+.bars div{display:flex;align-items:center;gap:10px;margin:6px 0}
+.bars label{width:96px;font-size:.72rem;color:var(--dim)}
+.bars .bar{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--cyan),var(--violet));min-width:2px;transition:width .6s}
+.bars b{font-size:.72rem;color:var(--faint)}
+#banner{display:none;max-width:1380px;margin:0 auto 14px;border:1px solid var(--red);background:rgba(248,81,73,.08);color:#ff8a84;border-radius:12px;padding:10px 18px;font-weight:600}
+footer{max-width:1380px;margin:0 auto;padding:10px 22px 36px;color:var(--faint);font-size:.82rem}
 footer a{color:var(--cyan);text-decoration:none}
-.bars div{display:flex;align-items:center;gap:8px;margin:5px 0}
-.bars label{width:92px;font-size:11px;color:var(--dim);font-family:Consolas,monospace}
-.bars .bar{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--cyan),var(--violet));min-width:2px;transition:width .5s}
-.bars b{font-size:11px;color:var(--faint)}
+@media(max-width:900px){#cols{grid-template-columns:1fr}#kpis{grid-template-columns:repeat(2,1fr)}header{gap:6px}}
 </style>
 </head>
 <body>
+<div id="hero">
+  <div class="card">
+    <h1>GRID<em>LINE</em></h1>
+    <div class="tag">A virtual Samsung smart home, live in your browser.</div>
+    <p>Fourteen simulated devices stream data the way a real house would: motion sensors, thermometers, power plugs. Watch the house wake up, cook dinner and go to sleep. Then press “break something” and see the house notice.</p>
+    <button id="go">Watch it live</button>
+    <div class="st">Built on Samsung's SmartThings developer platform</div>
+  </div>
+</div>
 <header>
-  <h1>GRID<span>LINE</span></h1>
+  <span class="brand">GRID<em>LINE</em></span>
   <span class="chip mono" id="clock">—</span>
   <span class="chip" id="phase">—</span>
   <button id="speed">speed ×4</button>
   <button id="pause">pause</button>
-  <button id="inject">⚡ inject anomaly</button>
-  <span class="chip" style="margin-left:auto">SIMULATED · in-browser port of <span class="mono">simulator/rhythms.py</span></span>
+  <button id="break">🔌 break something</button>
+  <button id="explain">what am I looking at?</button>
+  <span class="chip" style="margin-left:auto">live simulation. the real system talks to Samsung's servers</span>
 </header>
-<div id="banner"></div>
+<div id="sky"></div>
 <main>
-  <section>
-    <div id="kpis">
-      <div class="kpi"><b id="kEvents">0</b><span>events</span></div>
-      <div class="kpi"><b id="kWatts">0<i style="font-size:12px;font-style:normal"> W</i></b><span>power draw</span></div>
-      <div class="kpi"><b id="kActive">0/14</b><span>devices active</span></div>
-      <div class="kpi"><b id="kAnom" style="color:var(--red)">0</b><span>anomalies</span></div>
-    </div>
-    <div class="panel" id="plan">
-      <h2>Floor plan — Samsung SmartThings virtual fleet</h2>
-      <svg viewBox="0 0 640 330" id="floor"></svg>
-    </div>
-    <div class="panel" style="margin-top:14px">
-      <h2>Telemetry feed <span class="mono" style="letter-spacing:0">raw.device_events</span></h2>
-      <ul id="feed" class="mono"></ul>
-    </div>
-  </section>
-  <section>
-    <div class="panel">
-      <h2>Household power — rolling 24h <span class="mono" style="letter-spacing:0">fct_energy_hourly</span></h2>
-      <canvas id="energy" width="600" height="120"></canvas>
-    </div>
-    <div class="panel" style="margin-top:14px">
-      <h2>Room activity — last sim hour <span class="mono" style="letter-spacing:0">fct_room_activity</span></h2>
-      <div class="bars" id="rooms"></div>
-    </div>
-    <div class="panel" style="margin-top:14px">
-      <h2>🤖 Agent console — closes the loop via Rules API</h2>
-      <ul id="agentlog" class="mono"><li>agent online · watching mart_anomalies · dry-run off (simulated)</li></ul>
-    </div>
-  </section>
+  <div id="kpis">
+    <div class="kpi"><b id="kEvents">0</b><span>readings so far</span></div>
+    <div class="kpi"><b><span id="kWatts">0</span> <i style="font-size:.8rem;font-style:normal">W</i></b><span>power draw right now</span></div>
+    <div class="kpi"><b id="kActive">0<i style="font-size:.8rem;font-style:normal">/14</i></b><span>devices reporting</span></div>
+    <div class="kpi"><b id="kAnom" style="color:var(--red)">0</b><span>things gone wrong</span></div>
+  </div>
+  <div id="banner"></div>
+  <div id="cols">
+    <section>
+      <div class="panel" id="plan" style="animation-delay:.05s">
+        <h2>The house <span class="sub mono">14 SmartThings virtual devices</span></h2>
+        <div class="cap">Each dot is one virtual device. It lights up when the device reports something. Rooms glow when there's movement inside.</div>
+        <svg viewBox="0 0 640 340" id="floor" role="img" aria-label="floor plan of the simulated home"></svg>
+      </div>
+      <div class="panel" style="animation-delay:.15s">
+        <h2>What the house is saying <span class="sub mono">raw.device_events</span></h2>
+        <div class="cap">Every reading the house sends, newest first. In the real system each of these lands as a row in a Postgres table.</div>
+        <ul id="feed"></ul>
+      </div>
+    </section>
+    <section>
+      <div class="panel" style="animation-delay:.1s">
+        <h2>Power through the day <span class="sub mono">fct_energy_hourly</span></h2>
+        <div class="cap">Total household power draw, hour by hour. Watch it climb when the evening starts.</div>
+        <div id="chartwrap"><canvas id="energy" width="640" height="130"></canvas><div id="tip"></div></div>
+      </div>
+      <div class="panel" style="animation-delay:.2s">
+        <h2>Where the movement is <span class="sub mono">fct_room_activity</span></h2>
+        <div class="cap">Motion picked up per room over the past hour of house time.</div>
+        <div class="bars" id="rooms"></div>
+      </div>
+      <div class="panel" style="animation-delay:.25s">
+        <h2>Autopilot. The home reacts on its own <span class="sub mono">SmartThings Rules</span></h2>
+        <div class="cap">Simple threshold rules watch the data. When something looks wrong, the house writes itself a rule through Samsung's Rules engine.</div>
+        <ul id="autolog"><li><time>--:--</time>autopilot watching. all quiet.</li></ul>
+      </div>
+    </section>
+  </div>
 </main>
 <footer>
-  This page runs the GRIDLINE telemetry simulator entirely in your browser — nothing to install, no backend.
-  The real pipeline consumes the same rhythms through Samsung's SmartThings API into Airflow → Postgres → dbt → Metabase, with the agent acting back through the Rules API.
+  Everything on this page is a simulation running in your browser. Nothing to install and no data leaves the page.
+  The real system runs these same rhythms through Samsung's SmartThings servers, lands them in a warehouse, and reacts through the Rules engine.
   <a href="https://github.com/R4SHM1T/gridline">Read the code →</a>
 </footer>
 <script>
 "use strict";
-// ---- fleet (mirror of config/fleet.yaml) ----
+// fleet mirrors config/fleet.yaml
 const FLEET=[
- {id:"motion_living_room",t:"motion",room:"Living Room",x:150,y:95},
- {id:"motion_kitchen",t:"motion",room:"Kitchen",x:410,y:70},
- {id:"motion_hallway",t:"motion",room:"Hallway",x:320,y:185},
- {id:"contact_front_door",t:"contact",room:"Entryway",x:560,y:120},
- {id:"contact_back_door",t:"contact",room:"Kitchen",x:470,y:40},
- {id:"temp_living_room",t:"temp",room:"Living Room",x:80,y:60},
- {id:"temp_bedroom",t:"temp",room:"Bedroom",x:120,y:250},
- {id:"temp_outdoor",t:"temp",room:"Outdoor",x:600,y:290},
- {id:"plug_tv",t:"plug",room:"Living Room",x:210,y:60,base:8,on:120},
- {id:"plug_fridge",t:"plug",room:"Kitchen",x:440,y:110,base:90,on:160},
- {id:"plug_heater",t:"plug",room:"Bedroom",x:190,y:280,base:2,on:900},
- {id:"bulb_living_room",t:"bulb",room:"Living Room",x:110,y:130},
- {id:"bulb_bedroom",t:"bulb",room:"Bedroom",x:70,y:290},
- {id:"presence_phone",t:"presence",room:"Hallway",x:360,y:220}
+ {id:"motion_living_room",t:"motion",room:"Living Room",x:150,y:95,g:"M",n:"the living room motion sensor"},
+ {id:"motion_kitchen",t:"motion",room:"Kitchen",x:412,y:72,g:"M",n:"the kitchen motion sensor"},
+ {id:"motion_hallway",t:"motion",room:"Hallway",x:322,y:188,g:"M",n:"the hallway motion sensor"},
+ {id:"contact_front_door",t:"contact",room:"Entryway",x:562,y:120,g:"D",n:"the front door"},
+ {id:"contact_back_door",t:"contact",room:"Kitchen",x:470,y:40,g:"D",n:"the back door"},
+ {id:"temp_living_room",t:"temp",room:"Living Room",x:82,y:60,g:"°",n:"the living room"},
+ {id:"temp_bedroom",t:"temp",room:"Bedroom",x:120,y:248,g:"°",n:"the bedroom"},
+ {id:"temp_outdoor",t:"temp",room:"Outdoor",x:598,y:288,g:"°",n:"outside"},
+ {id:"plug_tv",t:"plug",room:"Living Room",x:212,y:62,g:"P",n:"the TV",base:8,on:120},
+ {id:"plug_fridge",t:"plug",room:"Kitchen",x:440,y:110,g:"P",n:"the fridge",base:90,on:160},
+ {id:"plug_heater",t:"plug",room:"Bedroom",x:190,y:282,g:"P",n:"the bedroom heater",base:2,on:900},
+ {id:"bulb_living_room",t:"bulb",room:"Living Room",x:110,y:130,g:"L",n:"the living room light"},
+ {id:"bulb_bedroom",t:"bulb",room:"Bedroom",x:70,y:288,g:"L",n:"the bedroom light"},
+ {id:"presence_phone",t:"presence",room:"Hallway",x:360,y:222,g:"⌂",n:"the phone"}
 ];
 const ROOMS=[
  {n:"Living Room",x:20,y:30,w:230,h:130},
@@ -127,73 +173,107 @@ const ROOMS=[
  {n:"Entryway",x:520,y:80,w:100,h:90},
  {n:"Outdoor",x:540,y:250,w:90,h:65}
 ];
-// ---- rhythms.py port ----
-function timeState(h,dow){const wk=dow>=5;if(h>=7&&h<=9&&!wk)return"morning_peak";if(h>=18&&h<=21)return"evening_peak";return"baseline"}
-function motionP(s){return s==="morning_peak"?.7:s==="evening_peak"?.8:.1}
+const FURN=[
+ {x:44,y:106,w:86,h:26,rx:8},   // couch
+ {x:196,y:44,w:44,h:12,rx:3},   // tv stand
+ {x:404,y:88,w:60,h:26,rx:5},   // kitchen counter
+ {x:40,y:238,w:74,h:56,rx:8},   // bed
+ {x:286,y:196,w:120,h:14,rx:7}  // hall runner
+];
+// same rhythm logic as simulator/rhythms.py
+function timeState(h,dow){const wk=dow>=5;if(h>=7&&h<=9&&!wk)return"morning";if(h>=18&&h<=21)return"evening";return"base"}
+function motionP(s){return s==="morning"?.7:s==="evening"?.8:.1}
 function tempDrift(h){const b=20;if(h<4)return b-(4-h)*.5;if(h<15)return b-2+(h-4)*.8;return b+6.8-(h-15)*.6}
-// ---- state ----
-let sim=new Date(2026,6,20,6,55),speed=4,paused=false,events=0,anoms=0;
-const state={},hourly=Array.from({length:24},()=>null),roomHits={};
-FLEET.forEach(d=>state[d.id]={val:null,anom:0});
-// ---- floor plan ----
+// state
+let sim=new Date(2026,6,20,6,55),speed=4,paused=false,events=0,anoms=0,ruleN=0;
+const state={},hourly=Array(24).fill(null),roomHits={};
+FLEET.forEach(d=>state[d.id]={anom:0});
+// floor plan
 const svg=document.getElementById("floor");
-let svgHTML="";
-ROOMS.forEach(r=>{svgHTML+=`<rect class="room" data-room="${r.n}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="8"/><text class="rlabel" x="${r.x+8}" y="${r.y+18}">${r.n.toUpperCase()}</text>`});
-FLEET.forEach(d=>{svgHTML+=`<circle class="pulse" id="p_${d.id}" cx="${d.x}" cy="${d.y}" r="6"/><circle class="dev" id="d_${d.id}" cx="${d.x}" cy="${d.y}" r="5"><title>${d.id}</title></circle>`});
-svg.innerHTML=svgHTML;
-function pulse(id,anom){const p=document.getElementById("p_"+id),d=document.getElementById("d_"+id);d.classList.add("on");if(anom)d.classList.add("anom");p.classList.remove("go");void p.getBBox;requestAnimationFrame(()=>p.classList.add("go"));setTimeout(()=>{d.classList.remove("on");d.classList.remove("anom")},1100)}
-// ---- feed ----
+let h="";
+ROOMS.forEach(r=>{h+=`<rect class=\"room\" data-room=\"${r.n}\" x=\"${r.x}\" y=\"${r.y}\" width=\"${r.w}\" height=\"${r.h}\" rx=\"10\"/>`});
+FURN.forEach(f=>{h+=`<rect class=\"furn\" x=\"${f.x}\" y=\"${f.y}\" width=\"${f.w}\" height=\"${f.h}\" rx=\"${f.rx}\"/>`});
+ROOMS.forEach(r=>{h+=`<text class=\"rlabel\" x=\"${r.x+9}\" y=\"${r.y+19}\">${r.n.toUpperCase()}</text>`});
+FLEET.forEach(d=>{h+=`<circle class=\"pulse\" id=\"p_${d.id}\" cx=\"${d.x}\" cy=\"${d.y}\" r=\"8\"/><g class=\"dev\" id=\"d_${d.id}\"><circle cx=\"${d.x}\" cy=\"${d.y}\" r=\"8\"/><text x=\"${d.x}\" y=\"${d.y+3}\">${d.g}</text><title>${d.n}</title></g>`});
+svg.innerHTML=h;
+function pulse(id,bad){const p=document.getElementById("p_"+id),d=document.getElementById("d_"+id);
+ d.classList.add(bad?"bad":"on");p.classList.toggle("bad",!!bad);
+ p.classList.remove("go");requestAnimationFrame(()=>p.classList.add("go"));
+ setTimeout(()=>{d.classList.remove("on");d.classList.remove("bad")},1100)}
+// feed
 const feed=document.getElementById("feed");
-function log(dev,cap,val,anom){events++;const li=document.createElement("li");if(anom)li.className="anom";li.innerHTML=`${fmt(sim)} <b>${dev}</b> ${cap}=${val}${anom?" ⚠ ANOMALY":""}`;feed.prepend(li);while(feed.children.length>60)feed.lastChild.remove();roomHits[devRoom(dev)]=(roomHits[devRoom(dev)]||0)+1;pulse(dev,anom)}
-function devRoom(id){const d=FLEET.find(f=>f.id===id);return d?d.room:"?"}
 function fmt(d){return d.toTimeString().slice(0,5)}
-// ---- agent ----
-const alog=document.getElementById("agentlog"),banner=document.getElementById("banner");
-let ruleN=1;
-function agent(msg,act){const li=document.createElement("li");if(act)li.className="act";li.textContent=msg;alog.prepend(li);while(alog.children.length>20)alog.lastChild.remove()}
-function anomaly(kind){anoms++;document.getElementById("kAnom").textContent=anoms;let dev,detail,rule;
- if(kind===0){dev="temp_living_room";detail="temperature spiked +10.0°C in one reading";state[dev].anom=8;rule=`IF temp_living_room > 32°C FOR 10m THEN notify(owner) + switch_off(plug_heater)`}
- else if(kind===1){dev="plug_fridge";detail="fridge power dropped to 0 W";state[dev].anom=8;rule=`IF plug_fridge.power == 0 FOR 5m THEN notify(owner, \"fridge offline\")`}
- else{dev="motion_hallway";detail="motion sensor stuck active (24 consecutive reads)";state[dev].anom=8;rule=`IF motion_hallway.active FOR 60m THEN mark_unhealthy(device) + notify(owner)`}
- banner.style.display="block";banner.textContent=`⚠ mart_anomalies flagged: ${detail}`;
- agent(`${fmt(sim)} anomaly detected → ${dev}: ${detail}`);
- setTimeout(()=>{agent(`${fmt(sim)} POST /rules → created gridline-agent-${ruleN++}: ${rule}`,true);setTimeout(()=>banner.style.display="none",4000)},1200)}
-document.getElementById("inject").onclick=()=>anomaly(Math.floor(Math.random()*3));
-// ---- tick ----
-function tick(){if(paused)return;sim=new Date(sim.getTime()+5*60000);const h=sim.getHours(),dow=(sim.getDay()+6)%7,st=timeState(h,dow);
+function say(dev,text,bad){events++;const li=document.createElement("li");if(bad)li.className="bad";
+ li.innerHTML=`<time>${fmt(sim)}</time>${text}${bad?" · that's not normal":""}`;
+ feed.prepend(li);while(feed.children.length>60)feed.lastChild.remove();
+ roomHits[dev.room]=(roomHits[dev.room]||0)+1;pulse(dev.id,bad)}
+// autopilot
+const alog=document.getElementById("autolog"),banner=document.getElementById("banner");
+function auto(text,rule){const li=document.createElement("li");if(rule)li.className="rule";
+ li.innerHTML=`<time>${fmt(sim)}</time>${text}`;alog.prepend(li);while(alog.children.length>18)alog.lastChild.remove()}
+const BREAKS=[
+ {dev:"plug_fridge",banner:"The fridge just went silent. Zero watts.",notice:"noticed: the fridge stopped drawing power",rule:"rule created: fridge silent for 5 min → alert my phone"},
+ {dev:"temp_living_room",banner:"The living room jumped ten degrees in one reading.",notice:"noticed: living room temperature spiked",rule:"rule created: any room jumps 8° or more → switch off the heater, alert my phone"},
+ {dev:"motion_hallway",banner:"The hallway sensor has been firing non-stop.",notice:"noticed: hallway motion stuck active",rule:"rule created: motion active a full hour → flag the device as unhealthy"}
+];
+let bi=0;
+document.getElementById("break").onclick=()=>{const b=BREAKS[bi++%3];anoms++;setKpi("kAnom",anoms);
+ state[b.dev].anom=8;banner.style.display="block";banner.textContent=b.banner;
+ auto(b.notice);setTimeout(()=>{ruleN++;auto(b.rule,true);setTimeout(()=>banner.style.display="none",4500)},1400)};
+// kpi tween
+const shown={kEvents:0,kWatts:0,kAnom:0};
+function setKpi(id,val){const from=shown[id]||0;shown[id]=val;const el=document.getElementById(id);const t0=performance.now();
+ function step(t){const k=Math.min(1,(t-t0)/350);el.textContent=Math.round(from+(val-from)*k);if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+// sky
+function setSky(hr){const s=document.getElementById("sky");let g;
+ if(hr>=21||hr<5)g=["#070b16","#101c3a"];else if(hr<8)g=["#2a1e3f","#b3543a"];else if(hr<17)g=["#173a5e","#2f7bb5"];else g=["#3a2354","#c96a3b"];
+ s.style.background=`linear-gradient(90deg,${g[0]},${g[1]})`}
+// tick
+function tick(){if(paused)return;sim=new Date(sim.getTime()+5*60000);const hr=sim.getHours(),dow=(sim.getDay()+6)%7,st=timeState(hr,dow);
  document.getElementById("clock").textContent=sim.toDateString().slice(0,10)+" "+fmt(sim);
- document.getElementById("phase").textContent=st==="baseline"?(h>=23||h<6?"🌙 night":"☀ baseline"):(st==="morning_peak"?"🌅 morning peak":"🌆 evening peak");
+ document.getElementById("phase").textContent=st==="morning"?"morning rush":st==="evening"?"evening at home":(hr>=22||hr<6?"night":"daytime");
+ setSky(hr);
  let watts=0,active=0;
- FLEET.forEach(d=>{const s=state[d.id];let fire=false,val;
-  if(d.t==="motion"){if(s.anom>0){val="active";fire=true;s.anom--}else if(Math.random()<motionP(st)*.6){val="active";fire=true}}
-  else if(d.t==="temp"){if(Math.random()<.35){val=(tempDrift(h)+(d.id==="temp_outdoor"?-4:0)+(Math.random()-.5)+(s.anom>0?10:0)).toFixed(1)+"°C";if(s.anom>0)s.anom--;fire=true}}
-  else if(d.t==="plug"){const on=st!=="baseline"||d.id==="plug_fridge"&&Math.random()<.7||h>=22&&d.id==="plug_heater";let w=on?d.on:d.base;w*=(0.9+Math.random()*.2);if(s.anom>0){w=0;s.anom--}watts+=w;if(Math.random()<.3){val=w.toFixed(0)+" W";fire=true}s.w=w}
-  else if(d.t==="contact"){if(Math.random()<.03){val="open";fire=true}}
-  else if(d.t==="bulb"){if((st==="evening_peak"||h>=22)&&Math.random()<.15){val="on · "+(40+Math.floor(Math.random()*60))+"%";fire=true}}
-  else if(d.t==="presence"){if((h===9&&fmt(sim).endsWith("00"))||h===18&&fmt(sim).endsWith("30")){val=h===9?"away":"home";fire=true}}
-  if(fire){log(d.id,d.t,val,s.anom>6);active++}});
- document.getElementById("kEvents").textContent=events;
- document.getElementById("kWatts").innerHTML=watts.toFixed(0)+'<i style="font-size:12px;font-style:normal"> W</i>';
- document.getElementById("kActive").textContent=active+"/14";
- hourly[h]=hourly[h]==null?watts:hourly[h]*.7+watts*.3;
+ FLEET.forEach(d=>{const s=state[d.id];let fired=false;
+  if(d.t==="motion"){if(s.anom>0){say(d,`${d.n} fired`,s.anom>6);s.anom--;fired=true}else if(Math.random()<motionP(st)*.6){say(d,`${d.n} fired`);fired=true}}
+  else if(d.t==="temp"){if(Math.random()<.35){const v=(tempDrift(hr)+(d.id==="temp_outdoor"?-4:0)+(Math.random()-.5)+(s.anom>0?10:0)).toFixed(1);if(s.anom>0)s.anom--;say(d,`${d.n} is now ${v}°C`,s.anom>5);fired=true}}
+  else if(d.t==="plug"){const on=st!=="base"||(d.id==="plug_fridge"&&Math.random()<.7)||(hr>=22&&d.id==="plug_heater");let w=(on?d.on:d.base)*(0.9+Math.random()*.2);if(s.anom>0){w=0;s.anom--}watts+=w;if(Math.random()<.3){say(d,`${d.n} drawing ${w.toFixed(0)} W`,w===0);fired=true}}
+  else if(d.t==="contact"){if(Math.random()<.03){say(d,`${d.n} opened`);fired=true}}
+  else if(d.t==="bulb"){if((st==="evening"||hr>=22)&&Math.random()<.15){say(d,`${d.n} on at ${40+Math.floor(Math.random()*60)}%`);fired=true}}
+  else if(d.t==="presence"){const m=fmt(sim);if(hr===9&&m.endsWith(":00")){say(d,"the phone left home");fired=true}else if(hr===18&&m.endsWith(":30")){say(d,"the phone is back home");fired=true}}
+  if(fired)active++});
+ setKpi("kEvents",events);setKpi("kWatts",Math.round(watts));
+ document.getElementById("kActive").innerHTML=active+'<i style=\"font-size:.8rem;font-style:normal\">/14</i>';
+ hourly[hr]=hourly[hr]==null?watts:hourly[hr]*.7+watts*.3;
  drawEnergy();drawRooms();
- ROOMS.forEach(r=>{const el=document.querySelector(`[data-room="${r.n}"]`);if(el)el.classList.toggle("active",(roomHits[r.n]||0)>0)});
-}
-// ---- charts ----
-const cv=document.getElementById("energy"),cx=cv.getContext("2d");
-function drawEnergy(){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);const max=Math.max(400,...hourly.filter(v=>v!=null));
+ ROOMS.forEach(r=>{const el=document.querySelector(`[data-room=\"${r.n}\"]`);if(el)el.classList.toggle("active",(roomHits[r.n]||0)>0)})}
+// energy chart
+const cv=document.getElementById("energy"),cx=cv.getContext("2d"),tip=document.getElementById("tip");
+let pts=[];
+function drawEnergy(){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);
+ const max=Math.max(400,...hourly.filter(v=>v!=null));
+ cx.strokeStyle="#141e29";cx.lineWidth=1;cx.font="10px Consolas";cx.fillStyle="#4a5a6a";
+ [0.25,0.5,0.75].forEach(f=>{const y=H-12-f*(H-32);cx.beginPath();cx.moveTo(8,y);cx.lineTo(W-8,y);cx.stroke();cx.fillText(Math.round(max*f)+"W",10,y-3)});
  const grad=cx.createLinearGradient(0,0,W,0);grad.addColorStop(0,"#00d4ff");grad.addColorStop(1,"#7c3aed");
- cx.beginPath();let started=false;
- for(let i=0;i<24;i++){const v=hourly[i];if(v==null)continue;const x=i/23*(W-20)+10,y=H-10-(v/max)*(H-30);if(!started){cx.moveTo(x,y);started=true}else cx.lineTo(x,y)}
- cx.strokeStyle=grad;cx.lineWidth=2;cx.stroke();
- cx.fillStyle="#586674";cx.font="10px Consolas";cx.fillText("00h",10,H-1);cx.fillText("12h",W/2-10,H-1);cx.fillText("23h",W-30,H-1);cx.fillText(max.toFixed(0)+"W",10,12)}
+ pts=[];cx.beginPath();let started=false;
+ for(let i=0;i<24;i++){const v=hourly[i];if(v==null)continue;const x=i/23*(W-24)+12,y=H-12-(v/max)*(H-32);pts.push({x,y,h:i,v});if(!started){cx.moveTo(x,y);started=true}else cx.lineTo(x,y)}
+ cx.strokeStyle=grad;cx.lineWidth=2.5;cx.lineJoin="round";cx.stroke();
+ pts.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,2.5,0,7);cx.fillStyle="#00d4ff";cx.fill()});
+ cx.fillStyle="#4a5a6a";cx.fillText("midnight",10,H-1);cx.fillText("noon",W/2-14,H-1);cx.fillText("11pm",W-40,H-1)}
+cv.addEventListener("mousemove",e=>{if(!pts.length)return;const r=cv.getBoundingClientRect();const mx=(e.clientX-r.left)*(cv.width/r.width);
+ let best=pts[0];pts.forEach(p=>{if(Math.abs(p.x-mx)<Math.abs(best.x-mx))best=p});
+ tip.style.display="block";tip.style.left=(best.x/cv.width*100)+"%";tip.style.top="4px";
+ tip.textContent=`${String(best.h).padStart(2,"0")}:00 · ${Math.round(best.v)} W`});
+cv.addEventListener("mouseleave",()=>tip.style.display="none");
+// rooms
 const roomsEl=document.getElementById("rooms");
-function drawRooms(){const entries=ROOMS.map(r=>[r.n,roomHits[r.n]||0]);const max=Math.max(1,...entries.map(e=>e[1]));
- roomsEl.innerHTML=entries.map(([n,v])=>`<div><label>${n}</label><div class="bar" style="width:${(v/max)*70}%"></div><b>${v}</b></div>`).join("")}
-// hourly decay of room hits
+function drawRooms(){const es=ROOMS.map(r=>[r.n,roomHits[r.n]||0]);const max=Math.max(1,...es.map(e=>e[1]));
+ roomsEl.innerHTML=es.map(([n,v])=>`<div><label>${n}</label><div class=\"bar\" style=\"width:${(v/max)*68}%\"></div><b>${v}</b></div>`).join("")}
 setInterval(()=>{Object.keys(roomHits).forEach(k=>roomHits[k]=Math.floor(roomHits[k]*.5))},15000);
-// ---- controls ----
+// controls
+document.getElementById("go").onclick=()=>document.getElementById("hero").classList.add("gone");
 document.getElementById("pause").onclick=e=>{paused=!paused;e.target.textContent=paused?"resume":"pause"};
+document.getElementById("explain").onclick=()=>document.body.classList.toggle("explain");
 const speeds=[1,4,12];let si=1;
 document.getElementById("speed").onclick=e=>{si=(si+1)%3;speed=speeds[si];e.target.textContent="speed ×"+speed;restart()};
 let timer=null;function restart(){clearInterval(timer);timer=setInterval(tick,1000/speed)}

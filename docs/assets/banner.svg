@@ -16,7 +16,7 @@
   <text x="70" y="148" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="68" font-weight="800" letter-spacing="16" fill="#e6edf3">GRIDLINE</text>
   <rect x="74" y="168" width="418" height="4" rx="2" fill="url(#accent)"/>
   <text x="74" y="205" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19" fill="#8b949e">A Samsung smart home, piped into a warehouse — and a warehouse that talks back.</text>
-  <text x="74" y="236" font-family="Consolas, Menlo, monospace" font-size="14" fill="#586674">SmartThings API · Airflow · dbt · Postgres · Metabase · AI agent</text>
+  <text x="74" y="236" font-family="Consolas, Menlo, monospace" font-size="14" fill="#586674">SmartThings API · Airflow · dbt · Postgres · Metabase · autopilot</text>
   <g font-family="Consolas, Menlo, monospace" font-size="13" fill="#9db4c8">
     <circle cx="985" cy="150" r="78" fill="none" stroke="#263445" stroke-width="1.5" stroke-dasharray="5 5"/>
     <path d="M 985 66 A 84 84 0 0 1 1069 150" fill="none" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>

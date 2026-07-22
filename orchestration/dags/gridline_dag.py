@@ -1,6 +1,10 @@
+import os
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
+
+# where the repo lives on the airflow box. override in the environment.
+GRIDLINE_HOME = os.environ.get("GRIDLINE_HOME", "/opt/gridline")
 
 default_args = {
     'owner': 'airflow',
@@ -22,12 +26,12 @@ with DAG(
 
     extract_raw = BashOperator(
         task_id='extract_raw',
-        bash_command='python /path/to/ingestion/run_ingestion.py',
+        bash_command=f'python {GRIDLINE_HOME}/ingestion/run_ingestion.py',
     )
 
     dbt_run = BashOperator(
         task_id='dbt_run',
-        bash_command='cd /path/to/dbt && dbt run',
+        bash_command=f'cd {GRIDLINE_HOME}/dbt && dbt run',
     )
 
     extract_raw >> dbt_run

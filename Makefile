@@ -21,7 +21,7 @@ dbt:
 	cd dbt && dbt run
 
 test:
-	python -m unittest discover simulator/tests
+	python -m unittest discover -s simulator/tests -t .
 
 clean:
 	docker-compose down -v
